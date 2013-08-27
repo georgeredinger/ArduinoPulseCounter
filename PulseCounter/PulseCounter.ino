@@ -1,6 +1,7 @@
 const int hardwareCounterPin = 5;   // input pin fixed to internal Timer
 const int samplePeriod = 1000;   // the sample period in milliseconds
-
+const int RedLED = 13;
+const int GreenLED = 12;
 
 void setup()
 {
@@ -22,11 +23,12 @@ void setup()
   TCCR1A=0;        // reset timer/counter control register A
   interrupts();  
   
+  pinMode(GreenLED,OUTPUT);
+  pinMode(RedLED,OUTPUT);
+  
   Serial.begin(115200);
   Serial.println("Pulse Counter");
   Serial.println("Hours,  Counts/hour, total counts since restart");
-
- 
 }  
 
 //called when timer reaches the compare match setting
@@ -49,6 +51,7 @@ void loop()
 {
   unsigned long start;
   unsigned long elapsed;
+  unsigned int count;
   unsigned long total=0L;
   unsigned long counts_per_hour;
   float hours;
@@ -59,8 +62,18 @@ void loop()
   // start the counting
    delay(samplePeriod);
   
-  total +=TCNT1;
+  count = TCNT1;
   TCNT1 = 0;
+
+  total += count;
+
+  if(count != 0){
+    digitalWrite(RedLED, HIGH);
+    digitalWrite(GreenLED, LOW);
+  }else{
+    digitalWrite(GreenLED, HIGH);
+    digitalWrite(RedLED, LOW);
+  }
   
   elapsed = millis()-start;
   
