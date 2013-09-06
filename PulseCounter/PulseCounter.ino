@@ -9,13 +9,14 @@ unsigned long count = 0L;
 unsigned long lastcount = 0;
 unsigned long lastminutes = 0;
 
-LiquidCrystal lcd( 8, 9, 4, 5, 6, 7 );
 volatile const uint8_t sensPin = 0;
 volatile uint8_t analog_reference = DEFAULT;
 
 volatile unsigned long IRQ8PrevTime;
 volatile int prevVal = 0;
 volatile uint8_t irqFlag = 0;
+
+LiquidCrystal lcd( 8, 9, 4, 5, 6, 7 );
 
 void setup()
 {
@@ -30,12 +31,10 @@ void setup()
   TCCR1A=0;        // reset timer/counter control register A
   interrupts();  
 
-  LiquidCrystal lcd( 8, 9, 4, 5, 6, 7 );
-  lcd.begin(16, 2);
+  lcd.begin(2,16);
+  
   lcd.setCursor( 0, 0 );
-  lcd.print("Welcome");
-
-
+  lcd.print("Min:  Rate: Tot:");
 }  
 
 ISR(PCINT1_vect) {
@@ -68,7 +67,7 @@ void loop()
   unsigned long minutes;
   unsigned long rate;
   const unsigned long millis_per_hour = (1000*60*60);
-
+  
   minutes = millis() / 60000.0;
 
   if((minutes != lastminutes) | (count != lastcount) ){
@@ -85,13 +84,14 @@ void loop()
     else {
       rate=0;
     }
-    lcd.setCursor( 0, 0 );
+    lcd.setCursor( 0, 1 );
+    delay(100);
     lcd.print("                    ");  
-    lcd.setCursor( 0, 0 );
-    lcd.print((long) minutes);
-    lcd.setCursor(5,0);
+    lcd.setCursor( 0, 1 );
+    lcd.print(minutes);
+    lcd.setCursor(6,1);
     lcd.print(rate);
-    lcd.setCursor(10,0);
+    lcd.setCursor(12,1);
     lcd.print(count);
   }
 }
