@@ -35,51 +35,32 @@ unsigned long lastminutes = 0;
 volatile const uint8_t sensPin = 0;
 //volatile uint8_t analog_reference = DEFAULT;
 
-volatile unsigned long IRQ8PrevTime;
 volatile int prevVal = 0;
 volatile uint8_t irqFlag = 0;
+
+const char key_map[]={' ','R','U','D','L','S'};
 
 LiquidCrystal lcd( 8, 9, 4, 5, 6, 7 );
 
 void setup()
 {
   noInterrupts(); 
-    PCICR |= (1 << PCIE1);      // enable pin change interrupt for PCINT14..8
-    PCMSK1 |= (1 << PCINT9);  // Enable Pin Change interrupt for ADC0 (analog PIN 1) INT9
-    IRQ8PrevTime = millis();    // Hold current time
+    PCICR |= (1 << PCIE1);     // enable pin change interrupt for PCINT14..8
+    PCMSK1 |= (1 << PCINT9);   // Enable Pin Change interrupt for ADC0 (analog PIN 1) INT9
   interrupts();  
   
-  Serial.begin(115200);
-  
   lcd.begin(2,16);
-  
   lcd.setCursor( 0, 0 );
-  lcd.print("Min:  Rate: Tot:");
+  lcd.print("Min: Rate: Tot:");
 }  
 
 ISR(PCINT1_vect) {
-  int curVal;
-
-  long unsigned IRQ8ActTime = millis();
-
-  if (IRQ8ActTime - IRQ8PrevTime > 1) {
-    ADMUX = (DEFAULT << 6) | (sensPin & 0x07);  // ADMUX - ADC Mulitplexer Selection Register
-    ADCSRA |= (1<<ADSC);                                 // ADCSRA: Bit 6 – ADC Start Conversion
-    while (bit_is_set(ADCSRA, ADSC));                    // While conversion in progress loop
-    uint8_t low = ADCL;                                  // read low value
-    uint8_t high = ADCH;                                 // read high value
-    curVal = (high << 8) | low;                          // combine low + high
-
-    if (curVal != prevVal) {
-      IRQ8PrevTime = IRQ8ActTime;
-      prevVal = curVal;
-      irqFlag = 1;
-    }
-    if(prevVal > 250) {
-      count++;
-    }
+  count += digitalRead(A1);
+  //  ADMUX = (DEFAULT << 6) | (sensPin & 0x07);  // ADMUX - ADC Mulitplexer Selection Register
+  //  ADCSRA |= (1<<ADSC);                                 // ADCSRA: Bit 6 – ADC Start Conversion
+  //  while (bit_is_set(ADCSRA, ADSC));                    // While conversion in progress loop
+  //  count += (ADCH == 3);
   }
-}
 
 /*--------------------------------------------------------------------------------------
   ReadButtons()
@@ -162,19 +143,18 @@ void loop()
       rate=0;
     }
     lcd.setCursor( 0, 1 );
-    delay(100);
     lcd.print("                    ");  
     lcd.setCursor( 0, 1 );
     lcd.print(minutes);
-    lcd.setCursor(6,1);
+    lcd.setCursor(5,1);
     lcd.print(rate);
-    lcd.setCursor(12,1);
+    lcd.setCursor(11,1);
     lcd.print(count);
   }
     key=ReadButtons();
     if(key !=0 ){
       lcd.setCursor(15,1);
-      lcd.print(key);
+      lcd.print(key_map[key]);
     }
   }
 
